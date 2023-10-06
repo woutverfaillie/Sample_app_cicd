@@ -1,15 +1,22 @@
 #!/bin/bash
 set -euo pipefail
 
-mkdir tempdir
-mkdir tempdir/templates
-mkdir tempdir/static
+TEMP_DIR="tempdir"
 
-cp sample_app.py tempdir/.
-cp -r templates/* tempdir/templates/.
-cp -r static/* tempdir/static/.
+# Check if tempdir directory already exists, and if not, create it
+if [ ! -d "$TEMP_DIR" ]; then
+    mkdir "$TEMP_DIR"
+    mkdir "$TEMP_DIR/templates"
+    mkdir "$TEMP_DIR/static"
+fi
 
-cat > tempdir/Dockerfile << _EOF_
+# Copy files and directories
+cp sample_app.py "$TEMP_DIR/"
+cp -r templates/* "$TEMP_DIR/templates/"
+cp -r static/* "$TEMP_DIR/static/"
+
+# Create Dockerfile
+cat > "$TEMP_DIR/Dockerfile" << _EOF_
 FROM python
 RUN pip install flask
 COPY  ./static /home/myapp/static/
@@ -19,7 +26,7 @@ EXPOSE 5050
 CMD python /home/myapp/sample_app.py
 _EOF_
 
-cd tempdir || exit
+cd "$TEMP_DIR" || exit
 docker build -t sampleapp .
 docker run -t -d -p 5050:5050 --name samplerunning sampleapp
-docker ps -a 
+docker ps -a
